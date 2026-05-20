@@ -125,10 +125,10 @@ Reserve `soffice`, LibreOffice PDF conversion, PDF2image rendering, and `render_
 If full visual QA is explicitly requested on this Mac, do not call the renderer with the system `python3`. Use the dedicated render venv so `pdf2image` is available, and make sure the fixed `soffice` wrapper is first on `PATH`:
 
 ```bash
-PATH=/Users/vivekgupta/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin \
+PATH=~/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin \
 TMPDIR=/private/tmp \
-/Users/vivekgupta/.local/venvs/docx-render/bin/python \
-/Users/vivekgupta/.codex/plugins/cache/openai-primary-runtime/documents/26.515.10909/skills/documents/render_docx.py \
+~/.local/venvs/docx-render/bin/python \
+~/.codex/plugins/cache/openai-primary-runtime/documents/26.515.10909/skills/documents/render_docx.py \
 file.docx \
 --output_dir /private/tmp/docx-render-output \
 --emit_pdf --verbose
