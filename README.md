@@ -26,6 +26,24 @@ Zotero > Settings > Advanced > Allow other applications on this computer to comm
 
 Keep Zotero open when using local search/retrieve workflows.
 
+For web-based Zotero use, generate an API key from your Zotero account:
+
+https://www.zotero.org/settings/keys
+
+You will need:
+
+- the Zotero API key
+- your Zotero user ID for a personal library, or the group ID for a group library
+- whether the library is `user` or `group`
+
+Configure these through `zot`:
+
+```bash
+zot configure setup
+```
+
+Use web-based setup when the local Zotero desktop app is not available, or when an agent needs access to an online Zotero library rather than the running desktop client.
+
 ## Install
 
 For agents that read from `~/.agents/skills`:
