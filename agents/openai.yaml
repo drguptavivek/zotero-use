@@ -1,0 +1,4 @@
+interface:
+  display_name: "Zotero Use"
+  short_description: "Find, review, and cite Zotero references"
+  default_prompt: "Use $zotero-use to search Zotero, retrieve the strongest references, brainstorm from the evidence, and add selected citations to my Word document."
