@@ -122,6 +122,22 @@ qlmanage -t -s 1600 -o /tmp/docx-preview file.docx
 
 Reserve `soffice`, LibreOffice PDF conversion, PDF2image rendering, and `render_docx.py` for substantial layout edits, tables/figures, final static DOCX delivery, suspected unreadable-document issues, or when the user explicitly asks for full visual QA.
 
+If full visual QA is explicitly requested on this Mac, do not call the renderer with the system `python3`. Use the dedicated render venv so `pdf2image` is available, and make sure the fixed `soffice` wrapper is first on `PATH`:
+
+```bash
+PATH=/Users/vivekgupta/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin \
+TMPDIR=/private/tmp \
+/Users/vivekgupta/.local/venvs/docx-render/bin/python \
+/Users/vivekgupta/.codex/plugins/cache/openai-primary-runtime/documents/26.515.10909/skills/documents/render_docx.py \
+file.docx \
+--output_dir /private/tmp/docx-render-output \
+--emit_pdf --verbose
+```
+
+Expected outputs are `sample.pdf` or `<stem>.pdf` plus `page-1.png`, `page-2.png`, etc. Inspect generated page PNGs only for the requested full visual QA case.
+
+If `soffice` quits unexpectedly, exits `-6`/`-1`, or the renderer reports failure to produce PDF while the same command should work, rerun this exact command outside the sandbox/escalated. On this Mac the render stack succeeds outside the sandbox, but sandboxed `soffice` can crash before producing PDF.
+
 ## Word Refresh
 
 After refresh, Zotero should expand the field with:
