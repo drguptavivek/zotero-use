@@ -86,6 +86,8 @@ Visible field result should be the formatted citation, for example:
 - Preserve the original `document.xml` namespace declarations and prefixes.
 - Avoid full XML rewrites that rename namespaces, such as changing `mc:` to `ns1:`; Word may report unreadable content.
 - Prefer narrow string-level insertion or a namespace-preserving OOXML tool.
+- For narrow Zotero citation insertions, do not load or run a full document rendering workflow by default.
+- Explicitly do not run `soffice`, LibreOffice PDF conversion, PDF2image rendering, or `render_docx.py` for routine Zotero field insertion.
 - Insert a normal Word field sequence:
   - `w:fldChar w:fldCharType="begin"`
   - `w:instrText xml:space="preserve"` containing the Zotero instruction
@@ -93,6 +95,32 @@ Visible field result should be the formatted citation, for example:
   - visible result text run
   - `w:fldChar w:fldCharType="end"`
 - Use the surrounding run formatting so the citation matches the paragraph.
+
+## Narrow OOXML Validation
+
+For small Zotero citation edits, prefer these checks over LibreOffice/PDF rendering:
+
+```bash
+unzip -t file.docx
+unzip -p file.docx word/document.xml | xmllint --noout -
+unzip -p file.docx word/document.xml | rg -o "ADDIN ZOTERO_ITEM CSL_CITATION" | wc -l
+unzip -p file.docx word/document.xml | rg "citationID|http://zotero.org/users/.+/items/|FormattedCitation|plainCitation"
+```
+
+Also verify:
+
+- Zotero field count increased by the expected number.
+- Each inserted field has the intended `citationID`, visible result text, and item URI.
+- Combined citations are one field with multiple `citationItems`, not multiple adjacent fields unless the user specifically wants separate citations.
+- `citationItems.id` should be the Zotero item key for a minimal local field; Zotero can hydrate full internal IDs and `itemData` after Word Zotero Refresh.
+
+Use Quick Look or another lightweight preview only when a visual sanity check is useful:
+
+```bash
+qlmanage -t -s 1600 -o /tmp/docx-preview file.docx
+```
+
+Reserve `soffice`, LibreOffice PDF conversion, PDF2image rendering, and `render_docx.py` for substantial layout edits, tables/figures, final static DOCX delivery, suspected unreadable-document issues, or when the user explicitly asks for full visual QA.
 
 ## Word Refresh
 
