@@ -18,6 +18,14 @@ MCP guidance is included, but not as the default. Adding MCP tools to an agent s
 
 Zotero library edit/update/delete actions are secondary. The main intent is search, retrieve, think with the evidence, and cite into Word documents.
 
+## Zotero Setup
+
+For local Zotero use, Zotero must allow local applications to talk to it:
+
+Zotero > Settings > Advanced > Allow other applications on this computer to communicate with Zotero
+
+Keep Zotero open when using local search/retrieve workflows.
+
 ## Install
 
 For agents that read from `~/.agents/skills`:
