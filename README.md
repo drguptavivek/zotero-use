@@ -18,8 +18,28 @@ MCP guidance is included, but not as the default. Adding MCP tools to an agent s
 
 Zotero library edit/update/delete actions are secondary. The main intent is search, retrieve, think with the evidence, and cite into Word documents.
 
-Install for agents that read from `~/.agents/skills`:
+## Install
+
+For agents that read from `~/.agents/skills`:
 
 ```bash
 git clone https://github.com/drguptavivek/zotero-use.git ~/.agents/skills/zotero-use
 ```
+
+For Codex, ask the agent:
+
+```text
+Install the skill from drguptavivek/zotero-use
+```
+
+or clone it into the active Codex skills directory used on your machine.
+
+For Claude-style local skills:
+
+```bash
+git clone https://github.com/drguptavivek/zotero-use.git ~/.claude/skills/zotero-use
+```
+
+For Gemini or other agents, use the same pattern: clone this repo into the agent's local skills directory and restart the agent so it reloads available skills.
+
+Marketplace/registry entry: point the skill installer to this GitHub repo. The skill root is the repository root, and the entrypoint is `SKILL.md`.
