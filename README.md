@@ -40,6 +40,20 @@ For Claude-style local skills:
 git clone https://github.com/drguptavivek/zotero-use.git ~/.claude/skills/zotero-use
 ```
 
+For project-local Claude skills:
+
+```bash
+mkdir -p .claude/skills
+git clone https://github.com/drguptavivek/zotero-use.git .claude/skills/zotero-use
+```
+
+For project-local Gemini skills:
+
+```bash
+mkdir -p .gemini/skills
+git clone https://github.com/drguptavivek/zotero-use.git .gemini/skills/zotero-use
+```
+
 For Gemini or other agents, use the same pattern: clone this repo into the agent's local skills directory and restart the agent so it reloads available skills.
 
 Marketplace/registry entry: point the skill installer to this GitHub repo. The skill root is the repository root, and the entrypoint is `SKILL.md`.
