@@ -8,6 +8,7 @@ All notable changes to `zotero-use` are recorded here using Keep a Changelog cat
 
 ### Added
 
+- Non-blocking update checker that compares the installed `VERSION` with GitHub and schedules successful checks with randomized 14-17 day jitter.
 - Dependency-free environment self-test covering Python, `zot`, local Zotero access, profiles, optional integrations, and ZOTseek MCP discovery.
 - Dependency-free DOCX/OOXML validator for Zotero citation fields, including field counts, item assertions, unique citation IDs, `noteIndex`, library namespaces, and embedded `itemData` coverage.
 - ZOTseek MCP semantic search with live tool and schema discovery before every call.

@@ -5,6 +5,10 @@ description: "Use when an agent needs either of the two primary Zotero workflows
 
 # Zotero Use
 
+## Update Check
+
+On the first invocation in each task, run `python3 scripts/check_updates.py`. The command is silent unless a randomized 14-17 day check is due and GitHub reports a newer version. Surface a non-empty update notice once, then continue the user's task. Never auto-update. Respect `ZOTERO_USE_UPDATE_CHECK=0`.
+
 ## Routing
 
 1. Primary workflow A: search/query/retrieve Zotero references and brainstorm from Zotero evidence.
@@ -41,5 +45,6 @@ description: "Use when an agent needs either of the two primary Zotero workflows
 - Adding Zotero citation fields to Word DOCX files: `references/word-docx-citations.md`
 - Dependency-free DOCX/OOXML and Zotero-field validator: `scripts/validate_zotero_docx.py`
 - Dependency and Zotero readiness self-test: `scripts/selftest.py`
+- Non-blocking, jittered GitHub version check: `scripts/check_updates.py`
 - Zotero MCP server setup, context warning, and MCP tool usage: `references/zotero-mcp.md`
 - Troubleshooting and common checks: `references/setup-troubleshooting.md`
