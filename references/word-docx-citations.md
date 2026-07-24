@@ -16,8 +16,10 @@ This is useful because it avoids generating large CSL JSON manually while still 
 
 ## Preconditions
 
-- Work on a git-tracked DOCX in a git repository. Use git history for restore/version management instead of creating multiple ad hoc DOCX copies.
-- Before editing, run `git status --short -- <file.docx>` and preserve any unrelated user changes.
+- Establish a recoverable output strategy before editing.
+- For a git-tracked DOCX, run `git status --short -- <file.docx>` and preserve unrelated user changes. Use git history for recovery when the requested output is the tracked file.
+- For an untracked DOCX or a DOCX outside a git repository, do not overwrite the input by default. Create a sibling output named `<stem>-zotero-cited.docx` unless the user chooses another path. Overwrite the input only when the user explicitly requests it.
+- Verify that input and output resolve to different paths before writing, and report both paths when handing off the result.
 - The DOCX already contains Zotero fields, or you know the local Zotero URI namespace.
 - The user can open the DOCX in Word with Zotero installed and click Zotero Refresh.
 - Zotero local API is enabled and the item exists in the local Zotero library.
@@ -28,10 +30,10 @@ Get the local namespace from existing fields:
 http://zotero.org/users/local/<LOCAL_USER_KEY>/items/<ITEM_KEY>
 ```
 
-Example from this machine:
+Synthetic example:
 
 ```text
-http://zotero.org/users/local/BszOcoDo/items/FJRYBQGQ
+http://zotero.org/users/local/LOCAL_USER_KEY/items/ABCD1234
 ```
 
 ## Search For The Reference
@@ -40,7 +42,7 @@ Use Pyzotero CLI:
 
 ```bash
 zot --local --library-id 0 --library-type user items list --query "artificial intelligence ophthalmology" --qmode everything --filter-item-type journalArticle --limit 10 --output table
-zot --local --library-id 0 --library-type user items get FJRYBQGQ --output table
+zot --local --library-id 0 --library-type user items get ITEM_KEY --output table
 ```
 
 Prefer a parent bibliographic item key, not an attachment key.
@@ -49,9 +51,11 @@ Prefer a parent bibliographic item key, not an attachment key.
 
 Use this shape:
 
+Generate a unique `citationID` for every citation field. Do not derive it solely from the item key because the same item can appear in more than one citation field.
+
 ```json
 {
-  "citationID": "codexFJRYBQGQ",
+  "citationID": "codex-ABCD1234-unique-suffix",
   "properties": {
     "formattedCitation": "(Chawla et al. 2025)",
     "plainCitation": "(Chawla et al. 2025)",
@@ -59,9 +63,9 @@ Use this shape:
   },
   "citationItems": [
     {
-      "id": "FJRYBQGQ",
+      "id": "ABCD1234",
       "uris": [
-        "http://zotero.org/users/local/BszOcoDo/items/FJRYBQGQ"
+        "http://zotero.org/users/local/LOCAL_USER_KEY/items/ABCD1234"
       ]
     }
   ],
@@ -122,21 +126,7 @@ qlmanage -t -s 1600 -o /tmp/docx-preview file.docx
 
 Reserve `soffice`, LibreOffice PDF conversion, PDF2image rendering, and `render_docx.py` for substantial layout edits, tables/figures, final static DOCX delivery, suspected unreadable-document issues, or when the user explicitly asks for full visual QA.
 
-If full visual QA is explicitly requested on this Mac, do not call the renderer with the system `python3`. Use the dedicated render venv so `pdf2image` is available, and make sure the fixed `soffice` wrapper is first on `PATH`:
-
-```bash
-PATH=~/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin \
-TMPDIR=/private/tmp \
-~/.local/venvs/docx-render/bin/python \
-~/.codex/plugins/cache/openai-primary-runtime/documents/26.515.10909/skills/documents/render_docx.py \
-file.docx \
---output_dir /private/tmp/docx-render-output \
---emit_pdf --verbose
-```
-
-Expected outputs are `sample.pdf` or `<stem>.pdf` plus `page-1.png`, `page-2.png`, etc. Inspect generated page PNGs only for the requested full visual QA case.
-
-If `soffice` quits unexpectedly, exits `-6`/`-1`, or the renderer reports failure to produce PDF while the same command should work, rerun this exact command outside the sandbox/escalated. On this Mac the render stack succeeds outside the sandbox, but sandboxed `soffice` can crash before producing PDF.
+If full visual QA is explicitly requested, use the document-rendering workflow available in the host agent or environment. Do not hardcode an operating-system-specific executable, Python environment, or versioned plugin path in the portable skill.
 
 ## Word Refresh
 
@@ -157,5 +147,5 @@ If no bibliography field exists, ask the user whether they want a live Zotero bi
 
 - This is a Word/Zotero-refresh-dependent workflow.
 - Do not use it for final static DOCX output unless the user can refresh in Word.
-- Use git for rollback. Do not pollute the workspace with multiple experimental DOCX copies unless the user explicitly asks for a separate copy.
+- Use git for rollback when the file is tracked. Otherwise preserve the input and deliver one clearly named output copy unless the user explicitly requests in-place editing.
 - Validate field counts before and after insertion.

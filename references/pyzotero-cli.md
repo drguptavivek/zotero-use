@@ -14,6 +14,17 @@ zot --help
 
 The installed command is `zot`.
 
+## Run Without Installing
+
+Use `uvx` when the user wants to try the CLI without installing it permanently, or when `zot` is unavailable but `uvx` is present:
+
+```bash
+uvx --from pyzotero-cli zot --help
+uvx --from pyzotero-cli zot --local --library-id 0 --library-type user items list --limit 5 --output table
+```
+
+For repeated commands, prefer installing the tool so the shorter `zot` form remains readable.
+
 ## Local Read-Only Mode
 
 Requires Zotero 7 local API enabled:
@@ -25,8 +36,8 @@ Use `--local` before the command group:
 ```bash
 zot --local --library-id 0 --library-type user items list --limit 5 --output table
 zot --local --library-id 0 --library-type user items list --query "glaucoma" --qmode everything --limit 5 --output table
-zot --local --library-id 0 --library-type user items get QUDEVEEJ --output table
-zot --local --library-id 0 --library-type user items children QUDEVEEJ --output table
+zot --local --library-id 0 --library-type user items get ITEM_KEY --output table
+zot --local --library-id 0 --library-type user items children ITEM_KEY --output table
 zot --local --library-id 0 --library-type user collections list --top --output table
 zot --local --library-id 0 --library-type user util item-types
 ```

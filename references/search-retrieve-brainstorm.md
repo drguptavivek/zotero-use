@@ -25,14 +25,14 @@ zot --local --library-id 0 --library-type user items list --query "artificial in
 Get metadata:
 
 ```bash
-zot --local --library-id 0 --library-type user items get FJRYBQGQ --output table
-zot --local --library-id 0 --library-type user items get FJRYBQGQ --output json
+zot --local --library-id 0 --library-type user items get ITEM_KEY --output table
+zot --local --library-id 0 --library-type user items get ITEM_KEY --output json
 ```
 
 Get children and PDF availability:
 
 ```bash
-zot --local --library-id 0 --library-type user items children FJRYBQGQ --output table
+zot --local --library-id 0 --library-type user items children ITEM_KEY --output table
 ```
 
 Download PDF, when needed:
