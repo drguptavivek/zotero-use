@@ -18,6 +18,8 @@ description: "Use when an agent needs either of the two primary Zotero workflows
 9. For Word work, use the agent's available Word/DOCX editing skill or document tooling. Do not install a separate DOCX-editing dependency solely for Zotero citation insertion.
 10. Validate edited DOCX files with `scripts/validate_zotero_docx.py`, which is read-only and uses only the Python standard library. Do not require `unzip`, `xmllint`, `rg`, `qlmanage`, LibreOffice, or rendering for narrow citation-field validation.
 11. Before first use or when troubleshooting setup, run `python3 scripts/selftest.py`. Use `--strict` when `zot` and a working local Zotero read connection are required, and `--require-zotseek` when semantic search is required.
+12. For received or collaborative DOCX files, inventory citation library namespaces and embedded `itemData` before editing. Preserve foreign fields unchanged; never combine a key from one library with another library's URI namespace.
+13. Treat received Zotero DOCX files as preservation-critical. Keep the original untouched, never open them through the OS default app, never trigger Zotero Refresh automatically, and validate the edited copy against the original with `--preserve-baseline-citations`.
 
 ## Work Pattern
 
@@ -27,8 +29,9 @@ description: "Use when an agent needs either of the two primary Zotero workflows
 4. For a single selected item, check children/attachments and report whether a PDF is available.
 5. For brainstorming/review, use the abstract plus PDF/full text when available; if only metadata/abstract was reviewed, say so.
 6. For Word work, let the available document skill read, edit, and preserve the DOCX; supply the Zotero field semantics and validate the result with the bundled validator.
-7. Report Zotero item keys with conclusions and citation-placement suggestions.
-8. Distinguish Zotero evidence from external knowledge or inference.
+7. When adding to a received document, use the URI returned for each selected item from the current Zotero library; mixed personal/group namespaces are valid.
+8. Report Zotero item keys with conclusions and citation-placement suggestions.
+9. Distinguish Zotero evidence from external knowledge or inference.
 
 ## Lazy References
 

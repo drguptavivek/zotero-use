@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import zipfile
 from pathlib import Path, PurePosixPath
@@ -17,6 +18,11 @@ from xml.etree import ElementTree
 
 ZOTERO_PREFIX = "ADDIN ZOTERO_ITEM CSL_CITATION"
 REQUIRED_PARTS = {"[Content_Types].xml", "_rels/.rels", "word/document.xml"}
+ZOTERO_ITEM_URI = re.compile(
+    r"^https?://(?:www\.)?zotero\.org/"
+    r"(?P<namespace>users/(?:local/[^/]+|\d+)|groups/\d+)/"
+    r"items/(?P<key>[^/?#]+)"
+)
 
 
 def local_name(name: str) -> str:
@@ -40,6 +46,9 @@ def validate_citation_data(
         "itemCount": 0,
         "itemKeys": [],
         "itemURIs": [],
+        "citationItems": [],
+        "libraryNamespaces": [],
+        "embeddedItemDataCount": 0,
         "visibleText": visible_text,
     }
     if not isinstance(data, dict):
@@ -78,11 +87,19 @@ def validate_citation_data(
         if not isinstance(item, dict):
             errors.append(f"{part}: citationItems[{index}] must be an object")
             continue
+        item_result: dict[str, Any] = {
+            "id": None,
+            "uris": [],
+            "uriItemKeys": [],
+            "libraryNamespaces": [],
+            "hasItemData": False,
+        }
         item_id = item.get("id")
         if not isinstance(item_id, (str, int)) or str(item_id).strip() == "":
             errors.append(f"{part}: citationItems[{index}].id is missing")
         else:
             result["itemKeys"].append(str(item_id))
+            item_result["id"] = item_id
 
         uris = item.get("uris")
         if not isinstance(uris, list) or not uris or not all(
@@ -93,6 +110,27 @@ def validate_citation_data(
             )
         else:
             result["itemURIs"].extend(uris)
+            item_result["uris"] = uris
+            for uri in uris:
+                match = ZOTERO_ITEM_URI.match(uri)
+                if match:
+                    namespace = match.group("namespace")
+                    uri_key = match.group("key")
+                    item_result["libraryNamespaces"].append(namespace)
+                    item_result["uriItemKeys"].append(uri_key)
+                    result["libraryNamespaces"].append(namespace)
+
+        item_data = item.get("itemData")
+        if isinstance(item_data, dict) and bool(item_data):
+            item_result["hasItemData"] = True
+            result["embeddedItemDataCount"] += 1
+        item_result["libraryNamespaces"] = sorted(
+            set(item_result["libraryNamespaces"])
+        )
+        item_result["uriItemKeys"] = sorted(set(item_result["uriItemKeys"]))
+        result["citationItems"].append(item_result)
+
+    result["libraryNamespaces"] = sorted(set(result["libraryNamespaces"]))
 
     schema = data.get("schema")
     if not isinstance(schema, str) or not schema:
@@ -163,6 +201,16 @@ def inspect_docx(path: Path) -> dict[str, Any]:
         "xmlParts": 0,
         "zoteroFields": [],
         "errors": [],
+        "warnings": [],
+        "portability": {
+            "libraryNamespaces": [],
+            "mixedLibraryNamespaces": False,
+            "citationItemCount": 0,
+            "itemsWithEmbeddedData": 0,
+            "itemsWithoutEmbeddedData": 0,
+            "embeddedDataCoverage": "not-applicable",
+            "unrecognizedItemURIs": [],
+        },
     }
     errors: list[str] = result["errors"]
 
@@ -218,6 +266,50 @@ def inspect_docx(path: Path) -> dict[str, Any]:
     duplicates = sorted({value for value in citation_ids if citation_ids.count(value) > 1})
     if duplicates:
         errors.append(f"duplicate citationID value(s): {', '.join(duplicates)}")
+
+    citation_items = [
+        item
+        for field in result["zoteroFields"]
+        for item in field["citationItems"]
+    ]
+    namespaces = sorted(
+        {
+            namespace
+            for item in citation_items
+            for namespace in item["libraryNamespaces"]
+        }
+    )
+    with_item_data = sum(item["hasItemData"] for item in citation_items)
+    without_item_data = len(citation_items) - with_item_data
+    unrecognized_uris = sorted(
+        {
+            uri
+            for item in citation_items
+            for uri in item["uris"]
+            if not ZOTERO_ITEM_URI.match(uri)
+        }
+    )
+    if unrecognized_uris:
+        result["warnings"].append(
+            "unrecognized Zotero item URI format(s): " + ", ".join(unrecognized_uris)
+        )
+    if not citation_items:
+        metadata_coverage = "not-applicable"
+    elif with_item_data == len(citation_items):
+        metadata_coverage = "complete"
+    elif with_item_data == 0:
+        metadata_coverage = "none"
+    else:
+        metadata_coverage = "partial"
+    result["portability"] = {
+        "libraryNamespaces": namespaces,
+        "mixedLibraryNamespaces": len(namespaces) > 1,
+        "citationItemCount": len(citation_items),
+        "itemsWithEmbeddedData": with_item_data,
+        "itemsWithoutEmbeddedData": without_item_data,
+        "embeddedDataCoverage": metadata_coverage,
+        "unrecognizedItemURIs": unrecognized_uris,
+    }
     return result
 
 
@@ -244,6 +336,55 @@ def apply_expectations(
                     f"expected Zotero field count to increase by {args.expected_increase}, "
                     f"observed {increase}"
                 )
+
+    if args.preserve_baseline_citations:
+        if baseline is None:
+            errors.append("--preserve-baseline-citations requires --baseline")
+        else:
+            baseline_by_id = {
+                field["citationID"]: field
+                for field in baseline["zoteroFields"]
+                if field["citationID"] is not None
+            }
+            current_by_id = {
+                field["citationID"]: field
+                for field in fields
+                if field["citationID"] is not None
+            }
+            baseline_has_citations = bool(baseline_by_id)
+            if not baseline_has_citations:
+                errors.append(
+                    "baseline contains no valid Zotero citation fields; "
+                    "cannot establish preservation"
+                )
+            missing_ids = sorted(set(baseline_by_id).difference(current_by_id))
+            changed_uri_ids = sorted(
+                citation_id
+                for citation_id in set(baseline_by_id).intersection(current_by_id)
+                if sorted(baseline_by_id[citation_id]["itemURIs"])
+                != sorted(current_by_id[citation_id]["itemURIs"])
+            )
+            if missing_ids:
+                errors.append(
+                    "baseline citationID value(s) missing: " + ", ".join(missing_ids)
+                )
+            if changed_uri_ids:
+                errors.append(
+                    "baseline citation item URI set changed for citationID value(s): "
+                    + ", ".join(changed_uri_ids)
+                )
+            not_preserved_ids = set(missing_ids).union(changed_uri_ids)
+            result["preservation"] = {
+                "requested": True,
+                "baselineCitationCount": len(baseline_by_id),
+                "preservedCitationCount": len(baseline_by_id)
+                - len(not_preserved_ids),
+                "missingCitationIDs": missing_ids,
+                "changedItemURICitationIDs": changed_uri_ids,
+                "passed": baseline_has_citations
+                and not missing_ids
+                and not changed_uri_ids,
+            }
 
     citation_ids = {field["citationID"] for field in fields}
     item_values = {
@@ -274,6 +415,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--minimum-fields", type=int)
     parser.add_argument("--expected-field-count", type=int)
     parser.add_argument("--expected-increase", type=int)
+    parser.add_argument(
+        "--preserve-baseline-citations",
+        action="store_true",
+        help="Require every baseline citationID and item URI set to survive unchanged",
+    )
     parser.add_argument("--expect-citation-id", action="append", default=[])
     parser.add_argument("--expect-item-key", action="append", default=[])
     parser.add_argument("--expect-visible-text", action="append", default=[])
@@ -308,11 +454,29 @@ def main() -> int:
         print(f"{status}: {result['path']}")
         print(f"XML/relationships parts parsed: {result['xmlParts']}")
         print(f"Zotero fields: {result['zoteroFieldCount']}")
+        portability = result["portability"]
+        namespaces = ", ".join(portability["libraryNamespaces"]) or "none"
+        print(f"Library namespaces: {namespaces}")
+        print(
+            "Embedded itemData: "
+            f"{portability['itemsWithEmbeddedData']}/"
+            f"{portability['citationItemCount']} citation item(s)"
+        )
         for field in result["zoteroFields"]:
             print(
                 f"- {field['part']}: citationID={field['citationID']!r}; "
                 f"items={field['itemCount']}; visible={field['visibleText']!r}"
             )
+        if "preservation" in result:
+            preservation = result["preservation"]
+            outcome = "passed" if preservation["passed"] else "failed"
+            print(
+                "Baseline citation preservation: "
+                f"{outcome} ({preservation['preservedCitationCount']}/"
+                f"{preservation['baselineCitationCount']})"
+            )
+        for warning in result["warnings"]:
+            print(f"WARNING: {warning}", file=sys.stderr)
         for error in result["errors"]:
             print(f"ERROR: {error}", file=sys.stderr)
     return 0 if result["valid"] else 1

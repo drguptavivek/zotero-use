@@ -4,6 +4,8 @@
 
 This is an agent skill for my Zotero workflow. It is written for any coding/research agent that can load local skills and follow file-based instructions.
 
+See [CHANGELOG.md](CHANGELOG.md) for notable changes.
+
 Primary use:
 
 - search/query/retrieve references from my Zotero library
