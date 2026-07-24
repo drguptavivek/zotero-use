@@ -1,6 +1,6 @@
 ---
 name: zotero-use
-description: "Use when Codex needs either of the two primary Zotero workflows: (1) search/query/retrieve references from the user's Zotero library and brainstorm from Zotero evidence, or (2) edit Word DOCX text and add selected Zotero items as live citation fields. Prefer structured Pyzotero CLI (`zot`) for low-context terminal workflows; use Zotero MCP tools only when already available or explicitly requested. Zotero library create/update/delete actions are secondary and should only be done when explicitly requested. Trigger on Zotero, Pyzotero, zot, Zotero MCP, Word/DOCX Zotero citations, literature searches, reference review, paper brainstorming, metadata, collections, tags, recent items, attachments/notes, full-text retrieval, or Zotero setup."
+description: "Use when an agent needs either of the two primary Zotero workflows: (1) search/query/retrieve references from the user's Zotero library and brainstorm from Zotero evidence, or (2) edit Word DOCX text and add selected Zotero items as live citation fields. Prefer structured Pyzotero CLI (`zot`) for low-context terminal workflows; use Zotero MCP tools only when already available or explicitly requested. Zotero library create/update/delete actions are secondary and should only be done when explicitly requested. Trigger on Zotero, Pyzotero, zot, Zotero MCP, Word/DOCX Zotero citations, literature searches within Zotero, Zotero reference review, paper brainstorming from a Zotero library, metadata, collections, tags, recent items, attachments/notes, full-text retrieval, or Zotero setup."
 ---
 
 # Zotero Use
@@ -33,5 +33,4 @@ description: "Use when Codex needs either of the two primary Zotero workflows: (
 - Search/query/retrieve/brainstorm from Zotero references: `references/search-retrieve-brainstorm.md`
 - Adding Zotero citation fields to Word DOCX files: `references/word-docx-citations.md`
 - Zotero MCP server setup, context warning, and MCP tool usage: `references/zotero-mcp.md`
-- Verified local examples on this machine: `references/verified-local-examples.md`
 - Troubleshooting and common checks: `references/setup-troubleshooting.md`

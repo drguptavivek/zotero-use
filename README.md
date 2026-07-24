@@ -1,5 +1,7 @@
 # zotero-use
 
+[![skills.sh](https://skills.sh/b/drguptavivek/agent-skills)](https://skills.sh/drguptavivek/agent-skills)
+
 This is an agent skill for my Zotero workflow. It is written for any coding/research agent that can load local skills and follow file-based instructions.
 
 Primary use:
@@ -44,7 +46,36 @@ zot configure setup
 
 Use web-based setup when the local Zotero desktop app is not available, or when an agent needs access to an online Zotero library rather than the running desktop client.
 
-## Install
+## Install with the Skills CLI
+
+Install from the curated [`drguptavivek/agent-skills`](https://github.com/drguptavivek/agent-skills) catalog using the open [`vercel-labs/skills`](https://github.com/vercel-labs/skills) CLI:
+
+```bash
+npx skills add drguptavivek/agent-skills --skill zotero-use
+```
+
+Install globally for a specific supported agent:
+
+```bash
+npx skills add drguptavivek/agent-skills --skill zotero-use --global --agent codex --yes
+npx skills add drguptavivek/agent-skills --skill zotero-use --global --agent claude-code --yes
+```
+
+List the skill without installing it:
+
+```bash
+npx skills add drguptavivek/agent-skills --list
+```
+
+To install directly from this standalone repository instead:
+
+```bash
+npx skills add drguptavivek/zotero-use
+```
+
+This repository remains the canonical source for the skill; the curated catalog mirrors it automatically.
+
+## Manual Install
 
 For agents that read from `~/.agents/skills`:
 
@@ -82,4 +113,4 @@ git clone https://github.com/drguptavivek/zotero-use.git .gemini/skills/zotero-u
 
 For Gemini or other agents, use the same pattern: clone this repo into the agent's local skills directory and restart the agent so it reloads available skills.
 
-Marketplace/registry entry: point the skill installer to this GitHub repo. The skill root is the repository root, and the entrypoint is `SKILL.md`.
+After a manual installation, restart the agent so it reloads available skills.
