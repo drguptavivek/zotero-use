@@ -2,6 +2,22 @@
 
 Load this for failures after using `references/pyzotero-cli.md` or `references/zotero-mcp.md`.
 
+## Self-Test
+
+Run the dependency-free self-test before individual troubleshooting steps:
+
+```bash
+python3 scripts/selftest.py
+```
+
+Use strict mode when the current task requires both the `zot` command and a working Zotero desktop local API connection:
+
+```bash
+python3 scripts/selftest.py --strict
+```
+
+The command installs nothing and does not print Zotero library contents, API keys, or profile contents. It also discovers the live tools at `http://localhost:23119/zotseek/mcp`; an unavailable optional ZOTseek endpoint is a warning. Use `--require-zotseek` when semantic search is required, `--json` for machine-readable results, and `--skip-local` when Zotero desktop access is intentionally unavailable.
+
 ## Pyzotero CLI Checks
 
 ```bash
@@ -66,6 +82,12 @@ If search/database behavior looks stale:
 zotero-mcp update-db --force-rebuild
 ```
 
-## DOCX Render Checks
+## DOCX Validation Checks
 
-Routine Zotero citation insertion should use structural OOXML validation, not full rendering. If full visual QA is necessary, use the document-rendering workflow available in the host agent or environment; do not assume a particular operating system, Python environment, LibreOffice location, or versioned plugin path.
+Validate narrow Zotero citation edits with the bundled read-only, standard-library script:
+
+```bash
+python3 scripts/validate_zotero_docx.py file.docx --minimum-fields 1
+```
+
+Use `--json` for machine-readable diagnostics. If Python 3 is unavailable, use the structural checks provided by the host document skill. Do not install a dependency solely for validation.

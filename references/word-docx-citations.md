@@ -1,64 +1,71 @@
 # Word DOCX Zotero Citations
 
-Use this when adding Zotero references to an existing `.docx` with live Zotero fields.
+Use this reference when adding selected Zotero items to an existing `.docx` as live Zotero fields.
 
-## Proven Local Workflow
+## Responsibility Boundary
 
-This workflow was tested on `sample.docx` on 2026-05-20:
+- Use the agent's available Word/DOCX editing skill or document tooling to read the document, choose citation locations, edit OOXML, preserve formatting, and save the result.
+- Use this skill only for Zotero item selection, citation-field semantics, and Zotero-specific validation.
+- Do not install `python-docx`, `lxml`, or another DOCX-editing dependency solely for this workflow.
+- Do not introduce a separate placeholder or citation-insertion script.
 
-- Insert a minimal Word field with `ADDIN ZOTERO_ITEM CSL_CITATION`.
-- Include only `citationID`, `properties`, `citationItems.id`, `citationItems.uris`, and `schema`.
-- Do not embed huge `itemData` manually.
-- Open in Word and run Zotero Refresh.
-- Zotero resolves the local item URI and hydrates the field with full `itemData`.
-
-This is useful because it avoids generating large CSL JSON manually while still creating a field Zotero can refresh.
-
-## Preconditions
+## Output Safety
 
 - Establish a recoverable output strategy before editing.
-- For a git-tracked DOCX, run `git status --short -- <file.docx>` and preserve unrelated user changes. Use git history for recovery when the requested output is the tracked file.
-- For an untracked DOCX or a DOCX outside a git repository, do not overwrite the input by default. Create a sibling output named `<stem>-zotero-cited.docx` unless the user chooses another path. Overwrite the input only when the user explicitly requests it.
-- Verify that input and output resolve to different paths before writing, and report both paths when handing off the result.
-- The DOCX already contains Zotero fields, or you know the local Zotero URI namespace.
-- The user can open the DOCX in Word with Zotero installed and click Zotero Refresh.
-- Zotero local API is enabled and the item exists in the local Zotero library.
+- For a tracked DOCX, inspect its git status and preserve unrelated changes.
+- For an untracked DOCX or a file outside a repository, create `<stem>-zotero-cited.docx` by default. Overwrite the input only when explicitly requested.
+- Verify that input and output resolve to different paths and report both paths.
 
-Get the local namespace from existing fields:
+## Zotero Field Rules
+
+- Cite parent bibliographic item keys, not attachment keys.
+- Generate a unique `citationID` for every field insertion location.
+- When the same item is cited at several locations, create a separate field and unique `citationID` at each location.
+- When several items are cited at one location, create one field containing several `citationItems`. Do not create adjacent fields unless the user explicitly wants separate citations.
+- Use the URI belonging to the exact selected item. Obtain it from the current Zotero library or construct it only after verifying the item's user, local-user, or group-library identity:
 
 ```text
+http://zotero.org/users/<USER_ID>/items/<ITEM_KEY>
 http://zotero.org/users/local/<LOCAL_USER_KEY>/items/<ITEM_KEY>
+http://zotero.org/groups/<GROUP_ID>/items/<ITEM_KEY>
 ```
 
-Synthetic example:
+- Do not copy a document-wide URI namespace onto new item keys. Zotero item keys are library-scoped.
+- Preserve all existing citation IDs, item IDs, URIs, and embedded `itemData` unless the user explicitly requests citation replacement.
 
-```text
-http://zotero.org/users/local/LOCAL_USER_KEY/items/ABCD1234
-```
+## Received And Collaborative Documents
 
-## Search For The Reference
+Before editing, run the validator and inspect `portability.libraryNamespaces`, `itemsWithEmbeddedData`, and `itemsWithoutEmbeddedData`.
 
-Use Pyzotero CLI:
+- Keep the received file untouched. Create a separate output copy before any edit.
+- Do not open a Zotero DOCX through the operating system's default application. Pages and incompatible word-processor paths can destroy active fields. If interactive verification is explicitly requested, open the copy specifically in Microsoft Word with the Zotero plugin.
+- Do not trigger Zotero Refresh automatically. Audit first; let the user decide whether to refresh after reviewing foreign/unresolved citations.
+- Treat multiple personal or group-library namespaces as valid. Do not normalize them.
+- An existing foreign citation with embedded `itemData` can remain usable as an orphaned citation within that document. Leave its field data unchanged when editing elsewhere.
+- If the sender says the document contains live Zotero citations but the baseline validator finds none, stop. Do not edit or refresh because the fields may already be broken or stored in an unsupported form.
+- If a foreign citation has no embedded `itemData` and its URI is not resolvable through the current Zotero libraries, create a copy and warn the user before Zotero Refresh. Do not claim it is portable.
+- If the same publication exists in the current library under another key, do not auto-match or rewrite it by title, DOI, or item key. Replace it only through an explicit citation-relinking workflow.
+- Add new citations using the selected items' own URIs. A document may legitimately contain citations from the sender's library, the recipient's library, and shared group libraries.
+
+After editing, prove that every baseline citation survived before handoff:
 
 ```bash
-zot --local --library-id 0 --library-type user items list --query "artificial intelligence ophthalmology" --qmode everything --filter-item-type journalArticle --limit 10 --output table
-zot --local --library-id 0 --library-type user items get ITEM_KEY --output table
+python3 scripts/validate_zotero_docx.py received-zotero-cited.docx \
+  --baseline received.docx \
+  --preserve-baseline-citations \
+  --expected-increase 2
 ```
 
-Prefer a parent bibliographic item key, not an attachment key.
+`--preserve-baseline-citations` fails if any original citation ID disappears or if its item URI set changes. Do not deliver an edited received document when this check fails.
 
 ## Minimal Citation JSON
 
-Use this shape:
-
-Generate a unique `citationID` for every citation field. Do not derive it solely from the item key because the same item can appear in more than one citation field.
+Use this synthetic shape for a citation in the main document text:
 
 ```json
 {
-  "citationID": "codex-ABCD1234-unique-suffix",
+  "citationID": "agent-unique-field-id",
   "properties": {
-    "formattedCitation": "(Chawla et al. 2025)",
-    "plainCitation": "(Chawla et al. 2025)",
     "noteIndex": 0
   },
   "citationItems": [
@@ -73,79 +80,62 @@ Generate a unique `citationID` for every citation field. Do not derive it solely
 }
 ```
 
-Field instruction prefix:
+`noteIndex` is `0` for main-text citations. For a citation in a footnote or endnote, use its actual positive note number. This gives the CSL processor the context needed by note styles.
+
+Do not synthesize `formattedCitation` or `plainCitation`. They are cached renderings that Zotero creates during Refresh, not bibliographic inputs. The document-editing skill must insert the intended provisional text separately as the visible Word field result; Zotero Refresh will replace it according to the document's active citation style.
+
+Use this field instruction prefix:
 
 ```text
  ADDIN ZOTERO_ITEM CSL_CITATION <JSON>
 ```
 
-Visible field result should be the formatted citation, for example:
+Insert the normal Word complex-field sequence:
 
-```text
-(Chawla et al. 2025)
-```
+1. `w:fldChar w:fldCharType="begin"`
+2. `w:instrText xml:space="preserve"` containing the instruction
+3. `w:fldChar w:fldCharType="separate"`
+4. A visible result run
+5. `w:fldChar w:fldCharType="end"`
 
-## DOCX Editing Rules
+Preserve the document's namespace prefixes and surrounding run formatting. Avoid full XML rewrites that rename namespaces.
 
-- Preserve the original `document.xml` namespace declarations and prefixes.
-- Avoid full XML rewrites that rename namespaces, such as changing `mc:` to `ns1:`; Word may report unreadable content.
-- Prefer narrow string-level insertion or a namespace-preserving OOXML tool.
-- For narrow Zotero citation insertions, do not load or run a full document rendering workflow by default.
-- Explicitly do not run `soffice`, LibreOffice PDF conversion, PDF2image rendering, or `render_docx.py` for routine Zotero field insertion.
-- Insert a normal Word field sequence:
-  - `w:fldChar w:fldCharType="begin"`
-  - `w:instrText xml:space="preserve"` containing the Zotero instruction
-  - `w:fldChar w:fldCharType="separate"`
-  - visible result text run
-  - `w:fldChar w:fldCharType="end"`
-- Use the surrounding run formatting so the citation matches the paragraph.
+## Dependency-Free Validation
 
-## Narrow OOXML Validation
-
-For small Zotero citation edits, prefer these checks over LibreOffice/PDF rendering:
+Run the bundled read-only validator with any available Python 3 interpreter. It uses only the standard library and does not render or modify the document:
 
 ```bash
-unzip -t file.docx
-unzip -p file.docx word/document.xml | xmllint --noout -
-unzip -p file.docx word/document.xml | rg -o "ADDIN ZOTERO_ITEM CSL_CITATION" | wc -l
-unzip -p file.docx word/document.xml | rg "citationID|http://zotero.org/users/.+/items/|FormattedCitation|plainCitation"
+python3 scripts/validate_zotero_docx.py manuscript-zotero-cited.docx \
+  --minimum-fields 1
 ```
 
-Also verify:
-
-- Zotero field count increased by the expected number.
-- Each inserted field has the intended `citationID`, visible result text, and item URI.
-- Combined citations are one field with multiple `citationItems`, not multiple adjacent fields unless the user specifically wants separate citations.
-- `citationItems.id` should be the Zotero item key for a minimal local field; Zotero can hydrate full internal IDs and `itemData` after Word Zotero Refresh.
-
-Use Quick Look or another lightweight preview only when a visual sanity check is useful:
+Compare an edited document with its original and verify the intended insertions:
 
 ```bash
-qlmanage -t -s 1600 -o /tmp/docx-preview file.docx
+python3 scripts/validate_zotero_docx.py manuscript-zotero-cited.docx \
+  --baseline manuscript.docx \
+  --expected-increase 2 \
+  --expect-item-key ABCD1234 \
+  --expect-item-key EFGH5678
 ```
 
-Reserve `soffice`, LibreOffice PDF conversion, PDF2image rendering, and `render_docx.py` for substantial layout edits, tables/figures, final static DOCX delivery, suspected unreadable-document issues, or when the user explicitly asks for full visual QA.
+The validator checks:
 
-If full visual QA is explicitly requested, use the document-rendering workflow available in the host agent or environment. Do not hardcode an operating-system-specific executable, Python environment, or versioned plugin path in the portable skill.
+- ZIP integrity, unsafe or duplicate part names, and required DOCX parts
+- XML well-formedness for every XML and relationships part
+- complete begin/separate/end Zotero complex fields
+- parseable citation JSON with `citationID`, a valid `properties.noteIndex`, `citationItems`, item URIs, and schema
+- unique `citationID` values
+- personal, local-user, and group-library URI namespaces plus embedded `itemData` coverage
+- optional baseline count increases, exact counts, item keys, citation IDs, and visible text
+- preservation of every baseline citation ID and its item URIs when requested
 
-## Word Refresh
+Use `--json` for machine-readable output. If Python 3 is unavailable, use the structural validation provided by the host document skill; do not install dependencies solely for validation.
 
-After refresh, Zotero should expand the field with:
+## Word Refresh and Handoff
 
-- numeric internal `id`
-- local URI
-- user URI
-- full `itemData`
-
-## Bibliography
-
-If the document already has a Zotero bibliography field, Zotero Refresh should update it after resolving the new citation.
-
-If no bibliography field exists, ask the user whether they want a live Zotero bibliography field or plain reference text.
-
-## Warnings
-
-- This is a Word/Zotero-refresh-dependent workflow.
-- Do not use it for final static DOCX output unless the user can refresh in Word.
-- Use git for rollback when the file is tracked. Otherwise preserve the input and deliver one clearly named output copy unless the user explicitly requests in-place editing.
-- Validate field counts before and after insertion.
+- The user must open the DOCX in Word with Zotero installed and run Zotero Refresh. Zotero should hydrate the minimal fields with internal IDs, user URIs, full `itemData`, and cached formatted/plain citation text.
+- An existing live Zotero bibliography should update after refresh.
+- If no bibliography field exists, ask whether the user wants a live bibliography field or plain reference text.
+- Do not treat the document as final static output until Zotero Refresh succeeds.
+- Report the output path, inserted-field count, cited item keys, and validation result.

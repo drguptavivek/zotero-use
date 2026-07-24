@@ -4,13 +4,14 @@ Use this for the primary Zotero workflow: search/query/retrieve references and b
 
 ## Workflow
 
-1. Start with metadata for candidate parent bibliographic items.
-2. Prefer parent bibliographic item keys over attachment keys for citation decisions.
-3. For a single selected item, always check children/attachments and report PDF availability.
-4. For brainstorming/review, use the abstract plus PDF/full text when available.
-5. Fetch full text selectively and summarize; do not paste long full text.
-6. Separate what the reference says from your inference.
-7. Adapt brainstorming to the user's current question and preferred style.
+1. For conceptual or passage-level discovery, load `references/zotseek-mcp.md`, enumerate the live MCP tools on first use, and use the discovered semantic-search schema.
+2. For exact search or after semantic discovery, use `zot` to retrieve and confirm candidate parent bibliographic items.
+3. Prefer parent bibliographic item keys over attachment keys for citation decisions.
+4. For a single selected item, always check children/attachments and report PDF availability.
+5. For brainstorming/review, use the abstract plus PDF/full text when available.
+6. Fetch full text selectively and summarize; do not paste long full text.
+7. Separate what the reference says from your inference.
+8. Adapt brainstorming to the user's current question and preferred style.
 
 Do not create, update, delete, tag, or otherwise modify Zotero library items unless the user explicitly asks for library modification.
 
