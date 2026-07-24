@@ -1,8 +1,10 @@
 # Changelog
 
-All notable changes to `zotero-use` are recorded here. The project follows Keep a Changelog categories; versioned releases will be added when tags are published.
+All notable changes to `zotero-use` are recorded here using Keep a Changelog categories.
 
 ## [Unreleased]
+
+## [2.0.0] - 2026-07-24
 
 ### Added
 
