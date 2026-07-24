@@ -36,6 +36,7 @@ def validate_citation_data(
     result: dict[str, Any] = {
         "part": part,
         "citationID": None,
+        "noteIndex": None,
         "itemCount": 0,
         "itemKeys": [],
         "itemURIs": [],
@@ -51,8 +52,21 @@ def validate_citation_data(
     else:
         result["citationID"] = citation_id
 
-    if not isinstance(data.get("properties"), dict):
+    properties = data.get("properties")
+    if not isinstance(properties, dict):
         errors.append(f"{part}: properties must be an object")
+    else:
+        note_index = properties.get("noteIndex")
+        if (
+            isinstance(note_index, bool)
+            or not isinstance(note_index, int)
+            or note_index < 0
+        ):
+            errors.append(
+                f"{part}: properties.noteIndex must be a non-negative integer"
+            )
+        else:
+            result["noteIndex"] = note_index
 
     items = data.get("citationItems")
     if not isinstance(items, list) or not items:

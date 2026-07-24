@@ -30,14 +30,12 @@ http://zotero.org/users/local/<LOCAL_USER_KEY>/items/<ITEM_KEY>
 
 ## Minimal Citation JSON
 
-Use this synthetic shape and supply the intended visible result text:
+Use this synthetic shape for a citation in the main document text:
 
 ```json
 {
   "citationID": "agent-unique-field-id",
   "properties": {
-    "formattedCitation": "(Chawla et al. 2025)",
-    "plainCitation": "(Chawla et al. 2025)",
     "noteIndex": 0
   },
   "citationItems": [
@@ -51,6 +49,10 @@ Use this synthetic shape and supply the intended visible result text:
   "schema": "https://github.com/citation-style-language/schema/raw/master/csl-citation.json"
 }
 ```
+
+`noteIndex` is `0` for main-text citations. For a citation in a footnote or endnote, use its actual positive note number. This gives the CSL processor the context needed by note styles.
+
+Do not synthesize `formattedCitation` or `plainCitation`. They are cached renderings that Zotero creates during Refresh, not bibliographic inputs. The document-editing skill must insert the intended provisional text separately as the visible Word field result; Zotero Refresh will replace it according to the document's active citation style.
 
 Use this field instruction prefix:
 
@@ -92,7 +94,7 @@ The validator checks:
 - ZIP integrity, unsafe or duplicate part names, and required DOCX parts
 - XML well-formedness for every XML and relationships part
 - complete begin/separate/end Zotero complex fields
-- parseable citation JSON with `citationID`, `properties`, `citationItems`, item URIs, and schema
+- parseable citation JSON with `citationID`, a valid `properties.noteIndex`, `citationItems`, item URIs, and schema
 - unique `citationID` values
 - optional baseline count increases, exact counts, item keys, citation IDs, and visible text
 
@@ -100,7 +102,7 @@ Use `--json` for machine-readable output. If Python 3 is unavailable, use the st
 
 ## Word Refresh and Handoff
 
-- The user must open the DOCX in Word with Zotero installed and run Zotero Refresh. Zotero should hydrate the minimal fields with internal IDs, user URIs, and full `itemData`.
+- The user must open the DOCX in Word with Zotero installed and run Zotero Refresh. Zotero should hydrate the minimal fields with internal IDs, user URIs, full `itemData`, and cached formatted/plain citation text.
 - An existing live Zotero bibliography should update after refresh.
 - If no bibliography field exists, ask whether the user wants a live bibliography field or plain reference text.
 - Do not treat the document as final static output until Zotero Refresh succeeds.
