@@ -6,6 +6,8 @@ This is an agent skill for my Zotero workflow. It is written for any coding/rese
 
 See [CHANGELOG.md](CHANGELOG.md) for notable changes.
 
+Current version: **2.0.0** (also recorded in [`VERSION`](VERSION)).
+
 Primary use:
 
 - search/query/retrieve references from my Zotero library
@@ -40,6 +42,18 @@ python3 scripts/zotseek_mcp.py tools
 ```
 
 The client discovers the current tools before every call instead of relying on a fixed tool list. See `references/zotseek-mcp.md` for generic calls and endpoint override instructions.
+
+## Update Check
+
+The skill performs a silent invocation-based version check with randomized scheduling between 14 and 17 days. It compares the local `VERSION` file with GitHub `main` and reports only when a newer version exists. It never installs updates.
+
+Check immediately:
+
+```bash
+python3 scripts/check_updates.py --force --verbose
+```
+
+The next due date is stored in `${XDG_STATE_HOME:-~/.local/state}/zotero-use/update-check.json`. Disable checks with `ZOTERO_USE_UPDATE_CHECK=0`. Use `--json` for machine-readable status.
 
 ## Zotero Setup
 

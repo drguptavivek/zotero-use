@@ -135,6 +135,40 @@ def check_validator(checks: list[dict[str, Any]], timeout: float) -> None:
         )
 
 
+def check_update_checker(checks: list[dict[str, Any]], timeout: float) -> None:
+    version_file = Path(__file__).resolve().parents[1] / "VERSION"
+    checker = Path(__file__).with_name("check_updates.py")
+    if not version_file.is_file():
+        add_check(checks, "update-checker", "FAIL", f"missing: {version_file}")
+        return
+    version = version_file.read_text(encoding="utf-8").strip()
+    version_parts = version.split(".")
+    if len(version_parts) != 3 or any(not part.isdigit() for part in version_parts):
+        add_check(checks, "update-checker", "FAIL", f"invalid VERSION: {version!r}")
+        return
+    if not checker.is_file():
+        add_check(checks, "update-checker", "FAIL", f"missing: {checker}")
+        return
+    try:
+        compile(checker.read_text(encoding="utf-8"), str(checker), "exec")
+        result = run_command(
+            [sys.executable, "-I", "-S", str(checker), "--help"], timeout
+        )
+    except (OSError, SyntaxError, UnicodeError, subprocess.TimeoutExpired) as exc:
+        add_check(checks, "update-checker", "FAIL", f"isolated check failed: {exc}")
+        return
+    if result.returncode != 0:
+        detail = sanitize(result.stderr or result.stdout or "no diagnostic output")
+        add_check(checks, "update-checker", "FAIL", detail)
+    else:
+        add_check(
+            checks,
+            "update-checker",
+            "PASS",
+            f"version {version}; present, compilable, and runnable with Python -I -S",
+        )
+
+
 def check_zot(
     checks: list[dict[str, Any]], strict: bool, skip_local: bool, timeout: float
 ) -> None:
@@ -313,6 +347,7 @@ def main() -> int:
     checks: list[dict[str, Any]] = []
     check_python(checks)
     check_validator(checks, args.timeout)
+    check_update_checker(checks, args.timeout)
     check_zot(checks, args.strict, args.skip_local, args.timeout)
     check_profiles(checks)
     check_optional_tools(checks, args.timeout)
