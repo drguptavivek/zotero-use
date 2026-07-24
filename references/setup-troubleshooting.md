@@ -2,6 +2,22 @@
 
 Load this for failures after using `references/pyzotero-cli.md` or `references/zotero-mcp.md`.
 
+## Self-Test
+
+Run the dependency-free self-test before individual troubleshooting steps:
+
+```bash
+python3 scripts/selftest.py
+```
+
+Use strict mode when the current task requires both the `zot` command and a working Zotero desktop local API connection:
+
+```bash
+python3 scripts/selftest.py --strict
+```
+
+The command installs nothing and does not print Zotero library contents, API keys, or profile contents. It also discovers the live tools at `http://localhost:23119/zotseek/mcp`; an unavailable optional ZOTseek endpoint is a warning. Use `--require-zotseek` when semantic search is required, `--json` for machine-readable results, and `--skip-local` when Zotero desktop access is intentionally unavailable.
+
 ## Pyzotero CLI Checks
 
 ```bash

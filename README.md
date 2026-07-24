@@ -7,18 +7,37 @@ This is an agent skill for my Zotero workflow. It is written for any coding/rese
 Primary use:
 
 - search/query/retrieve references from my Zotero library
+- semantically search the locally indexed library through ZOTseek MCP
 - review specific references using metadata, abstract, PDF/full text when available
 - brainstorm from Zotero evidence in the current writing context
 - edit Word `.docx` text and add selected Zotero references as live Zotero citation fields
 
-The default path is token-light: prefer the structured Pyzotero CLI command `zot`.
+Use the structured Pyzotero CLI command `zot` for exact retrieval and ZOTseek MCP for conceptual or passage-level semantic discovery.
 
 Credit: this workflow is mainly built around `pyzotero-cli` by Chris Carroll Smith:
 https://github.com/chriscarrollsmith/pyzotero-cli
 
-MCP guidance is included, but not as the default. Adding MCP tools to an agent session consumes context/tool-list budget, so the skill recommends running Zotero/Pyzotero locally and using MCP only when explicitly preferred.
+ZOTseek MCP is the optional semantic-discovery path. Generic Zotero MCP guidance is also included, but it is not the default for exact retrieval: adding persistent MCP tools to an agent session consumes context/tool-list budget, while the bundled ZOTseek client discovers tools only when needed.
 
 Zotero library edit/update/delete actions are secondary. The main intent is search, retrieve, think with the evidence, and cite into Word documents.
+
+## Self-Test
+
+After installation, check Python, the bundled DOCX validator, `zot`, optional `uv`/`uvx`, Zotero MCP commands, ZOTseek MCP tool discovery, profile configuration, and read-only local Zotero access:
+
+```bash
+python3 scripts/selftest.py
+```
+
+Use `--strict` to require both `zot` and a successful local Zotero read. Use `--require-zotseek` to require successful live tool discovery at `http://localhost:23119/zotseek/mcp`. The self-test installs nothing and does not print library contents or secret values.
+
+Before the first semantic search in a task, enumerate the live ZOTseek tools and schemas:
+
+```bash
+python3 scripts/zotseek_mcp.py tools
+```
+
+The client discovers the current tools before every call instead of relying on a fixed tool list. See `references/zotseek-mcp.md` for generic calls and endpoint override instructions.
 
 ## Zotero Setup
 
