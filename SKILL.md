@@ -15,7 +15,8 @@ description: "Use when an agent needs either of the two primary Zotero workflows
 6. Warn that adding MCP tools to an agent session consumes context/tool-list budget.
 7. Treat Zotero library create/update/delete as secondary; do not modify the Zotero library unless the user explicitly asks.
 8. Avoid direct local API wrappers and raw SQLite in this skill; use Pyzotero CLI instead.
-9. For narrow DOCX Zotero-field edits, use this skill's OOXML checks. Do not run `soffice`, LibreOffice PDF conversion, PDF2image rendering, or full document-render workflows unless the user explicitly asks or the task is layout-heavy rather than Zotero-field insertion.
+9. For Word work, use the agent's available Word/DOCX editing skill or document tooling. Do not install a separate DOCX-editing dependency solely for Zotero citation insertion.
+10. Validate edited DOCX files with `scripts/validate_zotero_docx.py`, which is read-only and uses only the Python standard library. Do not require `unzip`, `xmllint`, `rg`, `qlmanage`, LibreOffice, or rendering for narrow citation-field validation.
 
 ## Work Pattern
 
@@ -23,7 +24,7 @@ description: "Use when an agent needs either of the two primary Zotero workflows
 2. Inspect metadata for shortlisted parent bibliographic items; avoid citing attachment keys.
 3. For a single selected item, check children/attachments and report whether a PDF is available.
 4. For brainstorming/review, use the abstract plus PDF/full text when available; if only metadata/abstract was reviewed, say so.
-5. For Word work, edit text and add live Zotero citation fields with narrow OOXML changes; use structural validation by default.
+5. For Word work, let the available document skill read, edit, and preserve the DOCX; supply the Zotero field semantics and validate the result with the bundled validator.
 6. Report Zotero item keys with conclusions and citation-placement suggestions.
 7. Distinguish Zotero evidence from external knowledge or inference.
 
@@ -32,5 +33,6 @@ description: "Use when an agent needs either of the two primary Zotero workflows
 - Pyzotero CLI install, local mode, profiles, and command examples: `references/pyzotero-cli.md`
 - Search/query/retrieve/brainstorm from Zotero references: `references/search-retrieve-brainstorm.md`
 - Adding Zotero citation fields to Word DOCX files: `references/word-docx-citations.md`
+- Dependency-free DOCX/OOXML and Zotero-field validator: `scripts/validate_zotero_docx.py`
 - Zotero MCP server setup, context warning, and MCP tool usage: `references/zotero-mcp.md`
 - Troubleshooting and common checks: `references/setup-troubleshooting.md`

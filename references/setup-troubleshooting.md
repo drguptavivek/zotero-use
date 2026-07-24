@@ -66,6 +66,12 @@ If search/database behavior looks stale:
 zotero-mcp update-db --force-rebuild
 ```
 
-## DOCX Render Checks
+## DOCX Validation Checks
 
-Routine Zotero citation insertion should use structural OOXML validation, not full rendering. If full visual QA is necessary, use the document-rendering workflow available in the host agent or environment; do not assume a particular operating system, Python environment, LibreOffice location, or versioned plugin path.
+Validate narrow Zotero citation edits with the bundled read-only, standard-library script:
+
+```bash
+python3 scripts/validate_zotero_docx.py file.docx --minimum-fields 1
+```
+
+Use `--json` for machine-readable diagnostics. If Python 3 is unavailable, use the structural checks provided by the host document skill. Do not install a dependency solely for validation.
