@@ -1,6 +1,6 @@
 # zotero-use
 
-[![skills.sh](https://skills.sh/b/drguptavivek/zotero-use)](https://skills.sh/drguptavivek/zotero-use)
+[![skills.sh](https://skills.sh/b/drguptavivek/agent-skills)](https://skills.sh/drguptavivek/agent-skills)
 
 This is an agent skill for my Zotero workflow. It is written for any coding/research agent that can load local skills and follow file-based instructions.
 
@@ -48,26 +48,32 @@ Use web-based setup when the local Zotero desktop app is not available, or when 
 
 ## Install with the Skills CLI
 
-Install interactively using the open [`vercel-labs/skills`](https://github.com/vercel-labs/skills) CLI:
+Install from the curated [`drguptavivek/agent-skills`](https://github.com/drguptavivek/agent-skills) catalog using the open [`vercel-labs/skills`](https://github.com/vercel-labs/skills) CLI:
 
 ```bash
-npx skills add drguptavivek/zotero-use
+npx skills add drguptavivek/agent-skills --skill zotero-use
 ```
 
 Install globally for a specific supported agent:
 
 ```bash
-npx skills add drguptavivek/zotero-use --skill zotero-use --global --agent codex --yes
-npx skills add drguptavivek/zotero-use --skill zotero-use --global --agent claude-code --yes
+npx skills add drguptavivek/agent-skills --skill zotero-use --global --agent codex --yes
+npx skills add drguptavivek/agent-skills --skill zotero-use --global --agent claude-code --yes
 ```
 
 List the skill without installing it:
 
 ```bash
-npx skills add drguptavivek/zotero-use --list
+npx skills add drguptavivek/agent-skills --list
 ```
 
-The repository root is the skill root, and `SKILL.md` is the entrypoint.
+To install directly from this standalone repository instead:
+
+```bash
+npx skills add drguptavivek/zotero-use
+```
+
+This repository remains the canonical source for the skill; the curated catalog mirrors it automatically.
 
 ## Manual Install
 
