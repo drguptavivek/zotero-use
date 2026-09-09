@@ -6,7 +6,7 @@ This is an agent skill for my Zotero workflow. It is written for any coding/rese
 
 See [CHANGELOG.md](CHANGELOG.md) for notable changes.
 
-Current version: **2.0.0** (also recorded in [`VERSION`](VERSION)).
+Current version: **2.1.0** (also recorded in [`VERSION`](VERSION)).
 
 Primary use:
 
@@ -16,7 +16,7 @@ Primary use:
 - brainstorm from Zotero evidence in the current writing context
 - edit Word `.docx` text and add selected Zotero references as live Zotero citation fields
 
-Use the structured Pyzotero CLI command `zot` for exact retrieval and ZOTseek MCP for conceptual or passage-level semantic discovery.
+On Apple-silicon macOS, the skill includes a Developer ID-signed and notarized Go CLI at `bin/zotero-go-cli`. It prefers that executable, then a compatible `zotero-go-cli` on `PATH`, and retains the structured Pyzotero CLI command `zot` and Python helpers as fallbacks. ZOTseek MCP remains the conceptual or passage-level semantic-discovery path.
 
 Credit: this workflow is mainly built around `pyzotero-cli` by Chris Carroll Smith:
 https://github.com/chriscarrollsmith/pyzotero-cli
@@ -31,6 +31,12 @@ After installation, check Python, the bundled DOCX validator, `zot`, optional `u
 
 ```bash
 python3 scripts/selftest.py
+```
+
+When the native CLI is selected, the equivalent check is:
+
+```bash
+bin/zotero-go-cli doctor --strict
 ```
 
 Use `--strict` to require both `zot` and a successful local Zotero read. Use `--require-zotseek` to require successful live tool discovery at `http://localhost:23119/zotseek/mcp`. The self-test installs nothing and does not print library contents or secret values.
@@ -107,6 +113,14 @@ To install directly from this standalone repository instead:
 ```bash
 npx skills add drguptavivek/zotero-use
 ```
+
+This direct repository installation includes the signed Apple-silicon macOS CLI. On other supported platforms, or if the binary is missing, the skill offers to run the following installer only after receiving permission:
+
+```bash
+python3 scripts/install_cli.py
+```
+
+The installer selects the platform release archive, verifies it against the release `SHA256SUMS`, and installs only the matching executable into `bin/`. Python helpers remain available if native installation is declined or unavailable.
 
 This repository remains the canonical source for the skill; the curated catalog mirrors it automatically.
 
