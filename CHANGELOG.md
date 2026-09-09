@@ -4,6 +4,18 @@ All notable changes to `zotero-use` are recorded here using Keep a Changelog cat
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-09
+
+### Added
+
+- Developer ID-signed and Apple-notarized `darwin-arm64` `zotero-go-cli` under `bin/` for direct installation with the skill.
+- An explicit, checksum-verifying installer for compatible GitHub release binaries on supported platforms.
+
+### Changed
+
+- Prefer the bundled native CLI, then a compatible CLI on `PATH`, while retaining the Python and `zot` fallbacks.
+- Offer native CLI installation when missing, but never download or replace an executable without user approval.
+
 ## [2.0.0] - 2026-07-24
 
 ### Added
